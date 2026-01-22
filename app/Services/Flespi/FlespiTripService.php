@@ -131,7 +131,7 @@ class FlespiTripService extends FlespiApiService
 
         $params['limit'] = $limit;
 
-        $endpoint = '/gw/calcs/' . $calcId . '/devices/' . $deviceId . '/intervals';
+        $endpoint = '/gw/calcs/' . $calcId . '/devices/' . $deviceId . '/intervals/all';
         $intervals = $this->get($endpoint, $params, false);
 
         return collect($intervals)->map(function ($interval) {
@@ -182,7 +182,7 @@ class FlespiTripService extends FlespiApiService
      */
     public function getIntervalMessages(int $calcId, int $deviceId, int $intervalId): Collection
     {
-        $endpoint = '/gw/calcs/' . $calcId . '/devices/' . $deviceId . '/intervals/' . $intervalId . '/messages';
+        $endpoint = '/gw/calcs/' . $calcId . '/devices/' . $deviceId . '/intervals/' . $intervalId . '/messages/all';
         $messages = $this->get($endpoint, [], false);
 
         return collect($messages)->map(function ($message) {
