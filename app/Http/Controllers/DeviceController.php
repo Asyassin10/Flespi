@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Device;
+use App\Models\Driver;
+use App\Models\DriverAssignment;
 use App\Services\Flespi\FlespiDeviceService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class DeviceController extends Controller
 {
@@ -72,6 +75,76 @@ class DeviceController extends Controller
             return response()->json($messages);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Assign driver to device
+     */
+    public function assignDriver(Request $request, Device $device): RedirectResponse
+    {
+        $validated = $request->validate([
+            'driver_id' => 'required|exists:drivers,id',
+        ]);
+
+        try {
+            $driver = Driver::findOrFail($validated['driver_id']);
+
+            // Check if driver is active
+            if (!$driver->is_active) {
+                return redirect()->back()
+                    ->with('error', 'Cannot assign inactive driver');
+            }
+
+            // End any current assignment for this device
+            if ($device->current_driver_id) {
+                DriverAssignment::where('device_id', $device->id)
+                    ->whereNull('end_time')
+                    ->update(['end_time' => now()]);
+            }
+
+            // Create new assignment
+            DriverAssignment::create([
+                'driver_id' => $driver->id,
+                'device_id' => $device->id,
+                'start_time' => now(),
+            ]);
+
+            // Update device's current driver
+            $device->update(['current_driver_id' => $driver->id]);
+
+            return redirect()->back()
+                ->with('success', "Driver {$driver->name} assigned to {$device->name}");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to assign driver: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Unassign current driver from device
+     */
+    public function unassignDriver(Device $device): RedirectResponse
+    {
+        try {
+            if (!$device->current_driver_id) {
+                return redirect()->back()
+                    ->with('error', 'No driver currently assigned to this device');
+            }
+
+            // End current assignment
+            DriverAssignment::where('device_id', $device->id)
+                ->whereNull('end_time')
+                ->update(['end_time' => now()]);
+
+            // Clear device's current driver
+            $device->update(['current_driver_id' => null]);
+
+            return redirect()->back()
+                ->with('success', 'Driver unassigned from device');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to unassign driver: ' . $e->getMessage());
         }
     }
 }

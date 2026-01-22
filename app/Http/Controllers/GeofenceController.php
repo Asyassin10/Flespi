@@ -216,4 +216,32 @@ class GeofenceController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Assign geofence to calculator
+     */
+    public function assignCalculator(Request $request, Geofence $geofence): RedirectResponse
+    {
+        $validated = $request->validate([
+            'calculator_id' => 'required|integer',
+        ]);
+
+        try {
+            if (!$geofence->flespi_geofence_id) {
+                return redirect()->back()
+                    ->with('error', 'Cannot assign: Geofence not synced with Flespi');
+            }
+
+            $this->geofenceService->assignGeofencesToCalculator(
+                $validated['calculator_id'],
+                [$geofence->flespi_geofence_id]
+            );
+
+            return redirect()->back()
+                ->with('success', 'Geofence assigned to calculator successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to assign geofence: ' . $e->getMessage());
+        }
+    }
 }

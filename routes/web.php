@@ -14,6 +14,8 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::resource('devices', DeviceController::class);
 Route::post('devices/{device}/sync', [DeviceController::class, 'sync'])->name('devices.sync');
 Route::get('devices/{device}/location', [DeviceController::class, 'location'])->name('devices.location');
+Route::post('devices/{device}/assign-driver', [DeviceController::class, 'assignDriver'])->name('devices.assign-driver');
+Route::post('devices/{device}/unassign-driver', [DeviceController::class, 'unassignDriver'])->name('devices.unassign-driver');
 
 // Drivers
 Route::resource('drivers', DriverController::class);
@@ -30,6 +32,7 @@ Route::post('trips/sync', [TripController::class, 'sync'])->name('trips.sync');
 Route::resource('geofences', GeofenceController::class);
 Route::post('geofences-sync', [GeofenceController::class, 'sync'])->name('geofences.sync');
 Route::post('geofences-hit-test', [GeofenceController::class, 'hitTest'])->name('geofences.hit-test');
+Route::post('geofences/{geofence}/assign-calculator', [GeofenceController::class, 'assignCalculator'])->name('geofences.assign-calculator');
 
 // Setup
 Route::get('setup', [DashboardController::class, 'setup'])->name('setup');
