@@ -28,6 +28,8 @@ Route::post('trips/sync', [TripController::class, 'sync'])->name('trips.sync');
 
 // Geofences
 Route::resource('geofences', GeofenceController::class);
+Route::post('geofences-sync', [GeofenceController::class, 'sync'])->name('geofences.sync');
+Route::post('geofences-hit-test', [GeofenceController::class, 'hitTest'])->name('geofences.hit-test');
 
 // Setup
 Route::get('setup', [DashboardController::class, 'setup'])->name('setup');

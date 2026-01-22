@@ -134,17 +134,72 @@ class FlespiGeofenceService extends FlespiApiService
     }
 
     /**
-     * Assign geofence to calculator for entry/exit detection
+     * Assign geofences to calculator for entry/exit detection
      *
-     * @param int $geofenceId Geofence ID
      * @param int $calcId Calculator ID
+     * @param array $geofenceIds Array of geofence IDs
      * @return array Result
      */
-    public function assignGeofenceToCalculator(int $geofenceId, int $calcId): array
+    public function assignGeofencesToCalculator(int $calcId, array $geofenceIds): array
     {
-        return $this->post('/gw/geofences/' . $geofenceId . '/calcs', [
-            'calcs' => [$calcId]
-        ]);
+        $selector = count($geofenceIds) > 1 ? implode(',', $geofenceIds) : $geofenceIds[0];
+        return $this->post('/gw/calcs/' . $calcId . '/geofences/' . $selector, []);
+    }
+
+    /**
+     * Get geofences assigned to calculator
+     *
+     * @param int $calcId Calculator ID
+     * @return Collection Collection of assigned geofences
+     */
+    public function getCalculatorGeofences(int $calcId): Collection
+    {
+        $geofences = $this->get('/gw/calcs/' . $calcId . '/geofences/all', [], false);
+        return collect($geofences);
+    }
+
+    /**
+     * Remove geofences from calculator
+     *
+     * @param int $calcId Calculator ID
+     * @param array $geofenceIds Array of geofence IDs to remove
+     * @return array Result
+     */
+    public function removeGeofencesFromCalculator(int $calcId, array $geofenceIds): array
+    {
+        $selector = count($geofenceIds) > 1 ? implode(',', $geofenceIds) : $geofenceIds[0];
+        return $this->delete('/gw/calcs/' . $calcId . '/geofences/' . $selector);
+    }
+
+    /**
+     * Perform hit-test to check if coordinates are within any geofences
+     *
+     * @param float $latitude Point latitude
+     * @param float $longitude Point longitude
+     * @return Collection Collection of geofences containing the point
+     */
+    public function hitTest(float $latitude, float $longitude): Collection
+    {
+        $params = [
+            'data' => json_encode([
+                'coordinates' => [$longitude, $latitude] // Flespi uses [lon, lat] format
+            ])
+        ];
+
+        $result = $this->get('/gw/geofences/all/hittest', $params, false);
+        return collect($result);
+    }
+
+    /**
+     * Get geofence operation logs
+     *
+     * @param int $geofenceId Geofence ID
+     * @return Collection Collection of log entries
+     */
+    public function getGeofenceLogs(int $geofenceId): Collection
+    {
+        $logs = $this->get('/gw/geofences/' . $geofenceId . '/logs', [], false);
+        return collect($logs);
     }
 
     /**
