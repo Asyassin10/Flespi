@@ -142,7 +142,7 @@ class TripController extends Controller
         ]);
 
         try {
-            $calcId = config('services.flespi.trip_calculator_id');
+            $calcId = (int) config('services.flespi.trip_calculator_id');
 
             if (!$calcId) {
                 return redirect()->back()

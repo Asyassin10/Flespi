@@ -40,7 +40,7 @@ class SyncFlespiTrips extends Command
      */
     public function handle(): int
     {
-        $calcId = config('services.flespi.trip_calculator_id');
+        $calcId = (int) config('services.flespi.trip_calculator_id');
 
         if (!$calcId) {
             $this->error('Trip calculator not configured. Please set FLESPI_TRIP_CALC_ID in .env file.');
