@@ -8,6 +8,7 @@ use App\Models\Device;
 use App\Models\Driver;
 use App\Models\Trip;
 use App\Services\Flespi\FlespiTripService;
+use App\Helpers\PolylineDecoder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -73,12 +74,29 @@ class TripController extends Controller
     {
         $trip->load(['device', 'driver']);
 
-        // Get route points from stored route or fetch from Flespi
+        // Get route points - check if route is encoded polyline string or array
         $routePoints = [];
 
-        if ($trip->route && is_array($trip->route)) {
-            $routePoints = $trip->route;
-        } elseif ($trip->flespi_interval_id && config('services.flespi.trip_calculator_id')) {
+        if ($trip->route) {
+            // Check if metadata contains the encoded polyline
+            $encodedRoute = null;
+            if (is_string($trip->route)) {
+                $encodedRoute = $trip->route;
+            } elseif (is_array($trip->metadata) && isset($trip->metadata['route'])) {
+                $encodedRoute = $trip->metadata['route'];
+            }
+
+            // Decode the polyline if we have one
+            if ($encodedRoute && is_string($encodedRoute)) {
+                $routePoints = PolylineDecoder::decode($encodedRoute);
+            } elseif (is_array($trip->route) && isset($trip->route[0]['latitude'])) {
+                // Already decoded array of points
+                $routePoints = $trip->route;
+            }
+        }
+
+        // Fallback: fetch from Flespi if no route available
+        if (empty($routePoints) && $trip->flespi_interval_id && config('services.flespi.trip_calculator_id')) {
             try {
                 $calcId = (int) config('services.flespi.trip_calculator_id');
                 $messages = $this->tripService->getIntervalMessages(
@@ -87,9 +105,6 @@ class TripController extends Controller
                     $trip->flespi_interval_id
                 );
                 $routePoints = $messages->toArray();
-
-                // Store route for future use
-                $trip->update(['route' => $routePoints]);
             } catch (\Exception $e) {
                 // Log error but continue without route
                 \Log::warning('Failed to fetch trip route: ' . $e->getMessage());

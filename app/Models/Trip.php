@@ -62,7 +62,7 @@ class Trip extends Model
         'start_longitude' => 'decimal:8',
         'end_latitude' => 'decimal:8',
         'end_longitude' => 'decimal:8',
-        'route' => 'array',
+        'route' => 'string', // Encoded polyline from Flespi
         'metadata' => 'array',
     ];
 

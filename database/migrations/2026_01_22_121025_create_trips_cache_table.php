@@ -26,7 +26,7 @@ return new class extends Migration
             $table->decimal('start_longitude', 11, 8)->nullable();
             $table->decimal('end_latitude', 10, 8)->nullable();
             $table->decimal('end_longitude', 11, 8)->nullable();
-            $table->json('route')->nullable(); // Store route coordinates
+            $table->text('route')->nullable(); // Encoded polyline from Flespi
             $table->json('metadata')->nullable(); // Store additional trip data from Flespi
             $table->timestamps();
 
