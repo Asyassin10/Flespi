@@ -118,15 +118,11 @@ class FlespiTripService extends FlespiApiService
     ): Collection {
         $params = [];
 
-        if ($from || $to) {
-            $data = ['begin' => []];
-            if ($from) {
-                $data['begin']['from'] = $from;
-            }
-            if ($to) {
-                $data['begin']['to'] = $to;
-            }
-            $params['data'] = json_encode($data);
+        if ($from) {
+            $params['begin.from'] = $from;
+        }
+        if ($to) {
+            $params['begin.to'] = $to;
         }
 
         $params['limit'] = $limit;
