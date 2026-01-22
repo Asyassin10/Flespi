@@ -236,19 +236,20 @@ class FlespiTripService extends FlespiApiService
                 ?? null;
         };
 
-        // Extract distance - check multiple formats
+        // Extract distance - Flespi returns in kilometers already
         $distance = $getValue('distance')
             ?? $getValue('mileage')
             ?? $getValue('odometer')
             ?? 0;
 
-        // Extract speeds
-        $maxSpeed = $getValue('max_speed')
-            ?? $getValue('max.speed')
+        // Extract speeds - note Flespi uses dots in field names
+        $maxSpeed = $getValue('max.speed')
+            ?? $getValue('max_speed')
             ?? $getValue('speed.max')
             ?? 0;
 
-        $avgSpeed = $getValue('avg_speed')
+        $avgSpeed = $getValue('avg.speed')
+            ?? $getValue('avg_speed')
             ?? $getValue('average_speed')
             ?? $getValue('speed.avg')
             ?? 0;
@@ -259,10 +260,11 @@ class FlespiTripService extends FlespiApiService
             'end' => $interval['end'] ?? null,
             'duration' => isset($interval['end'], $interval['begin'])
                 ? $interval['end'] - $interval['begin']
-                : 0,
-            'distance' => $distance,
+                : ($interval['duration'] ?? 0),
+            'distance' => $distance, // Already in kilometers from Flespi
             'max_speed' => $maxSpeed,
             'avg_speed' => $avgSpeed,
+            'route' => $interval['route'] ?? null, // Encoded polyline
             'start_location' => [
                 'latitude' => $interval['begin.position.latitude']
                     ?? $interval['position.begin.latitude']

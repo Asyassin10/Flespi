@@ -132,13 +132,14 @@ class SyncFlespiTrips extends Command
                     'start_time' => date('Y-m-d H:i:s', (int) $interval['begin']),
                     'end_time' => date('Y-m-d H:i:s', (int) $interval['end']),
                     'duration' => $interval['duration'],
-                    'distance' => $interval['distance'] / 1000, // Convert meters to km
+                    'distance' => $interval['distance'], // Already in kilometers from Flespi
                     'avg_speed' => $interval['avg_speed'] ?? null,
                     'max_speed' => $interval['max_speed'] ?? null,
                     'start_latitude' => $interval['start_location']['latitude'],
                     'start_longitude' => $interval['start_location']['longitude'],
                     'end_latitude' => $interval['end_location']['latitude'],
                     'end_longitude' => $interval['end_location']['longitude'],
+                    'route' => $interval['route'] ?? null,
                     'metadata' => $interval['metadata'],
                 ]
             );
