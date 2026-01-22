@@ -48,7 +48,7 @@ return [
     'flespi' => [
         'base_url' => env('FLESPI_BASE_URL', 'https://flespi.io'),
         'token' => env('FLESPI_TOKEN'),
-        'trip_calculator_id' => env('FLESPI_TRIP_CALC_ID'),
+        'trip_calculator_id' => env('FLESPI_TRIP_CALC_ID', 2449629),
     ],
 
 ];

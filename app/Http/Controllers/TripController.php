@@ -158,18 +158,17 @@ class TripController extends Controller
             if ($request->filled('device_id')) {
                 // Sync specific device
                 $device = Device::findOrFail($request->device_id);
-                $synced = $this->syncDeviceTrips($device, $calcId, $from, $to);
+                $synced = $this->syncDeviceTrips($device, 2449629, $from, $to);
             } else {
                 // Sync all devices
                 $devices = Device::all();
                 foreach ($devices as $device) {
-                    $synced += $this->syncDeviceTrips($device, $calcId, $from, $to);
+                    $synced += $this->syncDeviceTrips($device, 2449629, $from, $to);
                 }
             }
 
             return redirect()->back()
                 ->with('success', "Synced {$synced} trips from Flespi!");
-
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Failed to sync trips: ' . $e->getMessage());
