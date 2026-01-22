@@ -80,26 +80,26 @@
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Geometry</h2>
             <dl class="space-y-3">
-                @if($geofence->type === 'circle')
+                @if($geofence->type === 'circle' && isset($geofence->geometry['center']))
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Center Latitude</dt>
-                        <dd class="mt-1 text-sm text-gray-900 font-mono">{{ number_format($geofence->geometry['center']['lat'], 6) }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900 font-mono">{{ number_format($geofence->geometry['center']['lat'] ?? 0, 6) }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Center Longitude</dt>
-                        <dd class="mt-1 text-sm text-gray-900 font-mono">{{ number_format($geofence->geometry['center']['lon'], 6) }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900 font-mono">{{ number_format($geofence->geometry['center']['lon'] ?? 0, 6) }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Radius</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ number_format($geofence->geometry['radius'], 0) }} meters</dd>
+                        <dd class="mt-1 text-sm text-gray-900">{{ number_format($geofence->geometry['radius'] ?? 0, 0) }} meters</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Area</dt>
                         <dd class="mt-1 text-sm text-gray-900">
-                            ~{{ number_format(3.14159 * pow($geofence->geometry['radius'], 2) / 1000000, 2) }} km²
+                            ~{{ number_format(3.14159 * pow($geofence->geometry['radius'] ?? 0, 2) / 1000000, 2) }} km²
                         </dd>
                     </div>
-                @else
+                @elseif($geofence->type === 'polygon' && isset($geofence->geometry['coordinates'][0]))
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Points</dt>
                         <dd class="mt-1 text-sm text-gray-900">{{ count($geofence->geometry['coordinates'][0]) }} vertices</dd>
@@ -111,16 +111,25 @@
                                 $coords = $geofence->geometry['coordinates'][0];
                                 $perimeter = 0;
                                 for ($i = 0; $i < count($coords) - 1; $i++) {
-                                    $lat1 = $coords[$i][1];
-                                    $lon1 = $coords[$i][0];
-                                    $lat2 = $coords[$i+1][1];
-                                    $lon2 = $coords[$i+1][0];
+                                    $lat1 = $coords[$i][1] ?? 0;
+                                    $lon1 = $coords[$i][0] ?? 0;
+                                    $lat2 = $coords[$i+1][1] ?? 0;
+                                    $lon2 = $coords[$i+1][0] ?? 0;
                                     $distance = sqrt(pow($lat2 - $lat1, 2) + pow($lon2 - $lon1, 2)) * 111000;
                                     $perimeter += $distance;
                                 }
                             @endphp
                             ~{{ number_format($perimeter, 0) }} meters
                         </dd>
+                    </div>
+                @else
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Type</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ ucfirst($geofence->type) }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Status</dt>
+                        <dd class="mt-1 text-sm text-gray-500">Invalid or incomplete geometry data</dd>
                     </div>
                 @endif
             </dl>

@@ -125,9 +125,9 @@ class FlespiApiService
                 'data' => $data,
             ]);
 
-            // If data is empty, make POST without body
+            // If data is empty, make POST without body using send()
             if (empty($data)) {
-                $response = $this->client()->post($url);
+                $response = $this->client()->send('POST', $url);
             } else {
                 $response = $this->client()->post($url, $data);
             }
