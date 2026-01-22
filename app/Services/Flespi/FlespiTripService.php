@@ -226,21 +226,62 @@ class FlespiTripService extends FlespiApiService
      */
     protected function formatInterval(array $interval): array
     {
+        // Helper to extract values from various possible locations
+        $getValue = function($key) use ($interval) {
+            // Check multiple possible locations for the value
+            return $interval[$key]
+                ?? $interval['counters'][$key]
+                ?? $interval['properties'][$key]
+                ?? $interval['value'][$key]
+                ?? null;
+        };
+
+        // Extract distance - check multiple formats
+        $distance = $getValue('distance')
+            ?? $getValue('mileage')
+            ?? $getValue('odometer')
+            ?? 0;
+
+        // Extract speeds
+        $maxSpeed = $getValue('max_speed')
+            ?? $getValue('max.speed')
+            ?? $getValue('speed.max')
+            ?? 0;
+
+        $avgSpeed = $getValue('avg_speed')
+            ?? $getValue('average_speed')
+            ?? $getValue('speed.avg')
+            ?? 0;
+
         return [
             'id' => $interval['id'] ?? null,
             'begin' => $interval['begin'] ?? null,
             'end' => $interval['end'] ?? null,
-            'duration' => $interval['end'] - $interval['begin'] ?? 0,
-            'distance' => $interval['counters']['distance'] ?? 0,
-            'max_speed' => $interval['counters']['max_speed'] ?? 0,
-            'avg_speed' => $interval['counters']['avg_speed'] ?? 0,
+            'duration' => isset($interval['end'], $interval['begin'])
+                ? $interval['end'] - $interval['begin']
+                : 0,
+            'distance' => $distance,
+            'max_speed' => $maxSpeed,
+            'avg_speed' => $avgSpeed,
             'start_location' => [
-                'latitude' => $interval['begin.position.latitude'] ?? null,
-                'longitude' => $interval['begin.position.longitude'] ?? null,
+                'latitude' => $interval['begin.position.latitude']
+                    ?? $interval['position.begin.latitude']
+                    ?? $interval['start_latitude']
+                    ?? null,
+                'longitude' => $interval['begin.position.longitude']
+                    ?? $interval['position.begin.longitude']
+                    ?? $interval['start_longitude']
+                    ?? null,
             ],
             'end_location' => [
-                'latitude' => $interval['end.position.latitude'] ?? null,
-                'longitude' => $interval['end.position.longitude'] ?? null,
+                'latitude' => $interval['end.position.latitude']
+                    ?? $interval['position.end.latitude']
+                    ?? $interval['end_latitude']
+                    ?? null,
+                'longitude' => $interval['end.position.longitude']
+                    ?? $interval['position.end.longitude']
+                    ?? $interval['end_longitude']
+                    ?? null,
             ],
             'metadata' => $interval,
         ];
