@@ -125,7 +125,12 @@ class FlespiApiService
                 'data' => $data,
             ]);
 
-            $response = $this->client()->post($url, $data);
+            // If data is empty, make POST without body
+            if (empty($data)) {
+                $response = $this->client()->post($url);
+            } else {
+                $response = $this->client()->post($url, $data);
+            }
 
             $this->handleResponse($response);
 
@@ -137,6 +142,9 @@ class FlespiApiService
                 'endpoint' => $endpoint,
                 'error' => $e->getMessage(),
             ]);
+            throw $e;
+        }
+    }
             throw $e;
         }
     }
