@@ -81,11 +81,20 @@ class FlespiDeviceService extends FlespiApiService
 
         $telemetry = $this->getDeviceTelemetry($deviceId, $fields, $useCache);
 
+        // Handle different response structures from Flespi
+        $data = $telemetry['telemetry'] ?? $telemetry;
+
+        // Extract timestamp - it might be nested in an array
+        $timestamp = null;
+        if (isset($data['timestamp'])) {
+            $timestamp = is_array($data['timestamp']) ? ($data['timestamp']['value'] ?? null) : $data['timestamp'];
+        }
+
         return [
-            'latitude' => $telemetry['telemetry']['position.latitude'] ?? null,
-            'longitude' => $telemetry['telemetry']['position.longitude'] ?? null,
-            'speed' => $telemetry['telemetry']['position.speed'] ?? null,
-            'timestamp' => $telemetry['telemetry']['timestamp'] ?? null,
+            'latitude' => $data['position.latitude'] ?? null,
+            'longitude' => $data['position.longitude'] ?? null,
+            'speed' => $data['position.speed'] ?? null,
+            'timestamp' => $timestamp,
         ];
     }
 
