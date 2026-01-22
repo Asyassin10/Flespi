@@ -145,9 +145,6 @@ class FlespiApiService
             throw $e;
         }
     }
-            throw $e;
-        }
-    }
 
     /**
      * Make PUT request to Flespi API
