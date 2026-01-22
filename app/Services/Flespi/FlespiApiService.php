@@ -49,6 +49,13 @@ class FlespiApiService
                 'Authorization' => 'FlespiToken ' . $this->token,
                 'Accept' => 'application/json',
             ])
+            ->withoutVerifying() // Disable SSL verification for environments with proxy issues
+            ->withOptions([
+                'proxy' => [
+                    'http' => false,
+                    'https' => false,
+                ],
+            ])
             ->retry(3, 1000);
     }
 
