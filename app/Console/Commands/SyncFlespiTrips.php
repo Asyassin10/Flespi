@@ -129,8 +129,8 @@ class SyncFlespiTrips extends Command
                 [
                     'device_id' => $device->id,
                     'driver_id' => $device->current_driver_id,
-                    'start_time' => date('Y-m-d H:i:s', $interval['begin']),
-                    'end_time' => date('Y-m-d H:i:s', $interval['end']),
+                    'start_time' => date('Y-m-d H:i:s', (int) $interval['begin']),
+                    'end_time' => date('Y-m-d H:i:s', (int) $interval['end']),
                     'duration' => $interval['duration'],
                     'distance' => $interval['distance'] / 1000, // Convert meters to km
                     'avg_speed' => $interval['avg_speed'] ?? null,
