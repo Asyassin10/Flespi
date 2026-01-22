@@ -158,12 +158,12 @@ class TripController extends Controller
             if ($request->filled('device_id')) {
                 // Sync specific device
                 $device = Device::findOrFail($request->device_id);
-                $synced = $this->syncDeviceTrips($device, 2449629, $from, $to);
+                $synced = $this->syncDeviceTrips($device, $calcId, $from, $to);
             } else {
                 // Sync all devices
                 $devices = Device::all();
                 foreach ($devices as $device) {
-                    $synced += $this->syncDeviceTrips($device, 2449629, $from, $to);
+                    $synced += $this->syncDeviceTrips($device, $calcId, $from, $to);
                 }
             }
 
