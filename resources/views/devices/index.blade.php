@@ -7,12 +7,13 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold text-gray-900">Devices</h1>
-        <form action="{{ route('setup.sync') }}" method="POST" class="inline">
-            @csrf
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                Sync Devices
-            </button>
-        </form>
+        <div class="flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg">
+            <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm font-medium">Auto-syncing every 2 minutes</span>
+        </div>
     </div>
 
     <!-- Statistics -->
@@ -104,14 +105,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                     </svg>
                     <h3 class="mt-2 text-lg font-medium text-gray-900">No devices found</h3>
-                    <p class="mt-1 text-sm text-gray-500">Get started by syncing devices from Flespi.</p>
-                    <div class="mt-6">
-                        <form action="{{ route('setup.sync') }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
-                                Sync Devices from Flespi
-                            </button>
-                        </form>
+                    <p class="mt-1 text-sm text-gray-500">Auto-sync is active. Devices will appear here automatically once they're synced from Flespi.</p>
+                    <div class="mt-6 inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg">
+                        <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm font-medium">Waiting for automatic sync...</span>
                     </div>
                 </div>
             </div>

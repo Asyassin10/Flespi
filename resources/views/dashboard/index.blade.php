@@ -7,19 +7,19 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div class="flex space-x-3">
-            <form action="{{ route('trips.sync') }}" method="POST" class="inline">
-                @csrf
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                    Sync Trips
-                </button>
-            </form>
-            <form action="{{ route('setup.sync') }}" method="POST" class="inline">
-                @csrf
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-                    Sync Devices
-                </button>
-            </form>
+        <div class="flex items-center space-x-4">
+            <!-- Auto-sync indicator -->
+            <div class="flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg">
+                <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm font-medium">Auto-sync Active</span>
+            </div>
+            <div class="text-sm text-gray-500">
+                <div>Devices: Every 2 minutes</div>
+                <div>Trips: Every 5 minutes</div>
+            </div>
         </div>
     </div>
 
@@ -167,40 +167,67 @@
     // Device data from backend
     const devices = @json($devices);
 
-    // Add markers for each device
-    const markers = [];
+    // Store markers by device ID
+    const markers = {};
     let bounds = [];
 
+    // Function to create custom icon
+    function createIcon(isOnline) {
+        return L.divIcon({
+            className: 'custom-marker',
+            html: `<div class="relative">
+                <svg class="h-8 w-8 ${isOnline ? 'text-green-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                </svg>
+                ${isOnline ? '<div class="absolute top-0 right-0 h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>' : ''}
+            </div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32]
+        });
+    }
+
+    // Function to create popup content
+    function createPopupContent(device) {
+        const isOnline = device.is_online || device.status === 'online';
+        return `
+            <div class="p-2">
+                <h3 class="font-bold">${device.name}</h3>
+                <p class="text-sm text-gray-600">Status: <span class="${isOnline ? 'text-green-600' : 'text-gray-400'}">${device.status || 'offline'}</span></p>
+                ${device.speed || device.last_speed ? `<p class="text-sm">Speed: ${device.speed || device.last_speed} km/h</p>` : ''}
+                ${device.driver ? `<p class="text-sm">Driver: ${device.driver.name}</p>` : (device.current_driver ? `<p class="text-sm">Driver: ${device.current_driver.name}</p>` : '')}
+                <a href="/devices/${device.id}" class="text-blue-600 text-sm hover:underline">View Details</a>
+            </div>
+        `;
+    }
+
+    // Function to add or update device marker
+    function updateDeviceMarker(device) {
+        const lat = device.latitude || device.last_latitude;
+        const lng = device.longitude || device.last_longitude;
+
+        if (!lat || !lng) return;
+
+        const isOnline = device.is_online || device.status === 'online';
+
+        if (markers[device.id]) {
+            // Update existing marker position and icon
+            markers[device.id].setLatLng([lat, lng]);
+            markers[device.id].setIcon(createIcon(isOnline));
+            markers[device.id].setPopupContent(createPopupContent(device));
+        } else {
+            // Create new marker
+            const marker = L.marker([lat, lng], { icon: createIcon(isOnline) })
+                .addTo(map)
+                .bindPopup(createPopupContent(device));
+
+            markers[device.id] = marker;
+        }
+    }
+
+    // Initialize with existing devices
     devices.forEach(device => {
         if (device.last_latitude && device.last_longitude) {
-            const isOnline = device.status === 'online';
-
-            // Create custom icon
-            const icon = L.divIcon({
-                className: 'custom-marker',
-                html: `<div class="relative">
-                    <svg class="h-8 w-8 ${isOnline ? 'text-green-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                    </svg>
-                    ${isOnline ? '<div class="absolute top-0 right-0 h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>' : ''}
-                </div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 32]
-            });
-
-            const marker = L.marker([device.last_latitude, device.last_longitude], { icon })
-                .addTo(map)
-                .bindPopup(`
-                    <div class="p-2">
-                        <h3 class="font-bold">${device.name}</h3>
-                        <p class="text-sm text-gray-600">Status: <span class="${isOnline ? 'text-green-600' : 'text-gray-400'}">${device.status}</span></p>
-                        ${device.last_speed ? `<p class="text-sm">Speed: ${device.last_speed} km/h</p>` : ''}
-                        ${device.current_driver ? `<p class="text-sm">Driver: ${device.current_driver.name}</p>` : ''}
-                        <a href="/devices/${device.id}" class="text-blue-600 text-sm hover:underline">View Details</a>
-                    </div>
-                `);
-
-            markers.push(marker);
+            updateDeviceMarker(device);
             bounds.push([device.last_latitude, device.last_longitude]);
         }
     });
@@ -210,9 +237,25 @@
         map.fitBounds(bounds, { padding: [50, 50] });
     }
 
-    // Auto-refresh every 30 seconds
-    setInterval(() => {
-        window.location.reload();
-    }, 30000);
+    // Function to fetch and update device positions
+    async function updateDevicePositions() {
+        try {
+            const response = await fetch('/api/devices-positions');
+            const data = await response.json();
+
+            if (data.success && data.devices) {
+                data.devices.forEach(device => {
+                    updateDeviceMarker(device);
+                });
+
+                console.log('Device positions updated at', new Date().toLocaleTimeString());
+            }
+        } catch (error) {
+            console.error('Failed to update device positions:', error);
+        }
+    }
+
+    // Auto-refresh every 15 seconds (real-time updates without page reload)
+    setInterval(updateDevicePositions, 15000);
 </script>
 @endpush

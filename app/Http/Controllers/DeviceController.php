@@ -147,4 +147,45 @@ class DeviceController extends Controller
                 ->with('error', 'Failed to unassign driver: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Get all device positions for real-time map updates
+     */
+    public function allPositions()
+    {
+        try {
+            $devices = Device::with('currentDriver')
+                ->whereNotNull('last_latitude')
+                ->whereNotNull('last_longitude')
+                ->get()
+                ->map(function($device) {
+                    return [
+                        'id' => $device->id,
+                        'name' => $device->name,
+                        'ident' => $device->ident,
+                        'latitude' => $device->last_latitude,
+                        'longitude' => $device->last_longitude,
+                        'speed' => $device->last_speed,
+                        'status' => $device->status,
+                        'is_online' => $device->isOnline(),
+                        'last_message_at' => $device->last_message_at?->toISOString(),
+                        'driver' => $device->currentDriver ? [
+                            'id' => $device->currentDriver->id,
+                            'name' => $device->currentDriver->name,
+                        ] : null,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'devices' => $devices,
+                'timestamp' => now()->toISOString(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -55,22 +55,27 @@
                             <dt class="text-sm text-gray-600">Type:</dt>
                             <dd class="text-sm font-medium text-gray-900">{{ ucfirst($geofence->type) }}</dd>
                         </div>
-                        @if($geofence->type === 'circle')
+                        @if($geofence->type === 'circle' && isset($geofence->geometry['center']))
                             <div class="flex justify-between">
                                 <dt class="text-sm text-gray-600">Center:</dt>
                                 <dd class="text-sm font-mono text-gray-900">
-                                    {{ number_format($geofence->geometry['center']['lat'], 6) }},
-                                    {{ number_format($geofence->geometry['center']['lon'], 6) }}
+                                    {{ number_format($geofence->geometry['center']['lat'] ?? 0, 6) }},
+                                    {{ number_format($geofence->geometry['center']['lon'] ?? 0, 6) }}
                                 </dd>
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-gray-600">Radius:</dt>
-                                <dd class="text-sm font-medium text-gray-900">{{ number_format($geofence->geometry['radius'], 0) }} meters</dd>
+                                <dd class="text-sm font-medium text-gray-900">{{ number_format($geofence->geometry['radius'] ?? 0, 0) }} meters</dd>
                             </div>
-                        @else
+                        @elseif($geofence->type === 'polygon' && isset($geofence->geometry['coordinates'][0]))
                             <div class="flex justify-between">
                                 <dt class="text-sm text-gray-600">Points:</dt>
                                 <dd class="text-sm font-medium text-gray-900">{{ count($geofence->geometry['coordinates'][0]) }} vertices</dd>
+                            </div>
+                        @else
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-gray-600">Status:</dt>
+                                <dd class="text-sm font-medium text-red-600">Invalid or incomplete geometry data</dd>
                             </div>
                         @endif
                     </dl>
@@ -131,19 +136,19 @@
     }
 
     // Draw geofence
-    if (geometry.type === 'circle') {
+    if (geometry.type === 'circle' && geometry.center && geometry.center.lat && geometry.center.lon) {
         shape = L.circle(
             [geometry.center.lat, geometry.center.lon],
             {
                 color: colorInput.value,
                 fillColor: colorInput.value,
                 fillOpacity: 0.2,
-                radius: geometry.radius
+                radius: geometry.radius || 100
             }
         ).addTo(map);
 
         map.setView([geometry.center.lat, geometry.center.lon], 13);
-    } else if (geometry.type === 'polygon') {
+    } else if (geometry.type === 'polygon' && geometry.coordinates && geometry.coordinates[0]) {
         const latlngs = geometry.coordinates[0].map(coord => [coord[1], coord[0]]);
 
         shape = L.polygon(latlngs, {
@@ -153,6 +158,10 @@
         }).addTo(map);
 
         map.fitBounds(shape.getBounds(), { padding: [50, 50] });
+    } else {
+        // Default view if geometry is invalid
+        map.setView([0, 0], 2);
+        console.error('Invalid geofence geometry:', geometry);
     }
 
     // Update color on change

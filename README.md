@@ -121,7 +121,26 @@ npm run dev
 php artisan queue:work
 ```
 
-### Step 7: Run the Application
+### Step 7: Start Task Scheduler (Required for auto-sync)
+
+The application includes automatic background synchronization that runs periodically:
+- **Devices**: Synced every 2 minutes
+- **Trips**: Synced every 5 minutes
+
+To enable auto-sync, run the scheduler in a separate terminal:
+
+```bash
+php artisan schedule:work
+```
+
+This keeps your dashboard and data updated in real-time without manual sync buttons.
+
+**For Production**: Add this cron entry to run the scheduler:
+```bash
+* * * * * cd /path/to/flespi && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Step 8: Run the Application
 
 ```bash
 php artisan serve
